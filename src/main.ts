@@ -9,7 +9,6 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
   app.useStaticAssets(join(__dirname, '..', 'static'));
   app.enableCors();
-
   await app.listen(process.env.PORT, () => console.log(`Application is running on port ${process.env.PORT}`));
 }
 bootstrap();
