@@ -20,28 +20,34 @@ export class EventsGateway {
   @WebSocketServer()
   server: Server;
   constructor() {}
-  spy = '';
-  op = '';
+  players = {
+    playerOne: '',
+    playerTwo: ''
+  }
+  playerOneTurn = true;
+  actionsList = [];
+  
 
   @SubscribeMessage('players')
-  getPlayers(@MessageBody() data: any): Observable<WsResponse<number>> {
-    console.log("data getPlayers", data)
-    if (!this.spy) this.spy = "1";
-    else if (!this.op) this.op = "2";
-    console.log("spy", this.spy, "\n op :", this.op)
-    return from([1, 2, 3]).pipe(map(item => ({ event: 'events2', data: item })));
+  initializePlayers(@MessageBody() data: any) {
+    console.log("data",data)
+    if (!this.players.playerOne) 
+      this.players.playerOne = data.playerId
+    else if (!this.players.playerTwo && this.players.playerOne !== data.playerId)
+      this.players.playerTwo = data.playerId;
+    console.log("initializePlayers gateway", this.players)
+
+    return this.server.emit('players', this.players);
   }
 
-  @SubscribeMessage('events')
-  findAll(@MessageBody() data: any): Observable<WsResponse<number>> {
-    console.log("data find all", data)
-    return from([1, 2, 3]).pipe(map(item => ({ event: 'events1', data: item })));
+  @SubscribeMessage('actions')
+  getActions(@MessageBody() data: any) {
+    this.actionsList.push(data)
+    console.log("getActions event gateway", data)
+    if (data.playerOneTurn) this.playerOneTurn = !data.playerOneTurn;
+    return this.server.emit('actions', this.actionsList, this.playerOneTurn);
   }
 
-  @SubscribeMessage('identity')
-  async identity(@MessageBody() data: number): Promise<number> {
-    return data;
-  }
 
   
 }
